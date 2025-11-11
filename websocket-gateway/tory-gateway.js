@@ -38,6 +38,19 @@ wsApp.ws("/ws", (client, req) => {
     const size = Buffer.isBuffer(msg) ? msg.length : Buffer.byteLength(msg);
     logEvent("client.message", { connId, bytes: size, isBinary });
 
+    // --- RMS meting toegevoegd ---
+    const rms = (() => {
+      try {
+        const data = new Int16Array(msg.buffer, msg.byteOffset, msg.byteLength / 2);
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) sum += data[i] * data[i];
+        return Math.sqrt(sum / data.length) / 32768;
+      } catch (err) {
+        return 0;
+      }
+    })();
+    console.log(`[🔊] Chunk ontvangen: ${msg.length} bytes | RMS: ${rms.toFixed(3)}`);
+
     // Future: route audio to Whisper/OpenAI here
 
     // Echo back acknowledgment
